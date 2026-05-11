@@ -14,10 +14,27 @@ HASH256 CLI GPU Miner is a high-performance native miner for HASH256 proof-of-wo
 ## Requirements
 
 - Windows 10/11 x64.
-- NVIDIA GPU with a recent NVIDIA driver for CUDA mining.
+- NVIDIA RTX 20 series or newer for CUDA mining.
 - Node.js 20 or newer.
 - ETH on the mining wallet for gas.
 - An Ethereum RPC URL. Public RPCs can work, but a private RPC is usually more reliable.
+
+## GPU Support
+
+The included CUDA binary is built for RTX 20+ class NVIDIA GPUs:
+
+```text
+RTX 20 series: sm_75
+RTX 30 series: sm_86
+RTX 40 series: sm_89
+Newer NVIDIA GPUs: sm_120 plus PTX fallback
+```
+
+Older NVIDIA cards are not the target for the CUDA build. If CUDA does not work on an old card, try the OpenCL backend instead:
+
+```powershell
+npm run native:opencl
+```
 
 ## Quick Start
 
@@ -120,13 +137,11 @@ PORT                     Local web server port.
 
 ## Build CUDA Binary From Source
 
-The repository includes a ready-to-run Windows binary in `native/bin/hash256-cuda.exe`. To rebuild it, install CUDA Toolkit and Visual Studio Build Tools, then run:
+The repository includes a ready-to-run Windows binary in `native/bin/hash256-cuda.exe`. It is built as a fat binary for RTX 20+ GPUs. To rebuild it, install CUDA Toolkit and Visual Studio Build Tools, then run:
 
 ```powershell
-cmd /c """C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"" && ""C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.2\bin\nvcc.exe"" -O3 -arch=sm_89 -Xptxas=-v,-O3 native\hash256_cuda.cu -o native\bin\hash256-cuda.exe"
+cmd /c """C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"" && ""C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.2\bin\nvcc.exe"" -O3 -Xptxas=-v,-O3 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86 -gencode=arch=compute_89,code=sm_89 -gencode=arch=compute_120,code=sm_120 -gencode=arch=compute_120,code=compute_120 native\hash256_cuda.cu -o native\bin\hash256-cuda.exe"
 ```
-
-For older NVIDIA GPUs, change `sm_89` to the architecture your card supports.
 
 ## Project Layout
 
