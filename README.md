@@ -9,7 +9,7 @@ HASH256 CLI GPU Miner is a high-performance native miner for HASH256 proof-of-wo
 - Reads mining state from an Ethereum RPC endpoint.
 - Runs a native GPU miner locally.
 - Submits a found nonce through your own wallet.
-- Keeps your private key in local Node.js code only, not in the browser miner.
+- Keeps your private key local in `.env`.
 
 ## Requirements
 
@@ -74,18 +74,6 @@ Run the OpenCL miner:
 npm run native:opencl
 ```
 
-Run the local browser/WebGPU UI:
-
-```powershell
-npm start
-```
-
-Then open:
-
-```text
-http://127.0.0.1:8787
-```
-
 ## CUDA Test And Benchmark
 
 Check correctness without network access:
@@ -132,7 +120,6 @@ CUDA_BLOCKS              CUDA block count. 0 means auto.
 CUDA_THREADS             CUDA threads per block.
 CUDA_HASHES_PER_THREAD   Nonces scanned by each CUDA thread per launch.
 OPENCL_GLOBAL            OpenCL global work items.
-PORT                     Local web server port.
 ```
 
 ## Build CUDA Binary From Source
@@ -146,8 +133,7 @@ cmd /c """C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxi
 ## Project Layout
 
 ```text
-src/                         Node.js server, CLI, and transaction submission code.
-src/public/                  Browser WebGPU UI.
+src/                         Node.js CLI and transaction submission code.
 native/hash256_cuda.cu       CUDA miner source.
 native/hash256_opencl.cpp    OpenCL miner source.
 native/bin/                  Ready-to-run native Windows binaries.

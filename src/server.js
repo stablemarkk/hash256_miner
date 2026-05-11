@@ -1,16 +1,8 @@
 import crypto from "node:crypto";
-import fs from "node:fs";
-import http from "node:http";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { ethers } from "ethers";
 import { loadDotEnv } from "./env.js";
 
 loadDotEnv();
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(__dirname, "..");
-const publicDir = path.join(__dirname, "public");
 
 const CONTRACT = "0xAC7b5d06fa1e77D08aea40d46cB7C5923A87A0cc";
 const READ_RPC = process.env.ETH_RPC_URL || "https://ethereum.publicnode.com";
@@ -21,7 +13,6 @@ const BROADCAST_RPCS = (process.env.BROADCAST_RPCS ||
   .map(item => item.trim())
   .filter(Boolean);
 const TIP_GWEI = process.env.TIP_GWEI || "25";
-const PORT = Number(process.env.PORT || 8787);
 
 const abi = [
   "function genesisComplete() view returns (bool)",
@@ -35,33 +26,6 @@ const readProvider = new ethers.JsonRpcProvider(READ_RPC, 1);
 const txProvider = new ethers.JsonRpcProvider(TX_RPC, 1);
 const iface = new ethers.Interface(abi);
 const readContract = new ethers.Contract(CONTRACT, abi, readProvider);
-
-function json(res, status, body) {
-  const data = JSON.stringify(body, (_, value) => typeof value === "bigint" ? value.toString() : value);
-  res.writeHead(status, {
-    "content-type": "application/json; charset=utf-8",
-    "cache-control": "no-store",
-    "access-control-allow-origin": "*"
-  });
-  res.end(data);
-}
-
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    req.on("data", chunk => chunks.push(chunk));
-    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
-    req.on("error", reject);
-  });
-}
-
-function contentType(file) {
-  if (file.endsWith(".html")) return "text/html; charset=utf-8";
-  if (file.endsWith(".js")) return "text/javascript; charset=utf-8";
-  if (file.endsWith(".txt")) return "text/plain; charset=utf-8";
-  if (file.endsWith(".json")) return "application/json; charset=utf-8";
-  return "application/octet-stream";
-}
 
 function requireWallet() {
   if (!process.env.PRIVATE_KEY) {
@@ -156,72 +120,4 @@ export async function submitNonce(nonceHex) {
     maxFeePerGas: tx.maxFeePerGas,
     broadcast: accepted
   };
-}
-
-export function createServer() {
-  return http.createServer(async (req, res) => {
-  try {
-    if (req.method === "OPTIONS") return json(res, 204, {});
-    const url = new URL(req.url || "/", `http://${req.headers.host}`);
-
-    if (url.pathname === "/api/state") {
-      const walletAddress = process.env.PRIVATE_KEY
-        ? new ethers.Wallet(process.env.PRIVATE_KEY).address
-        : url.searchParams.get("address");
-      if (!walletAddress || !ethers.isAddress(walletAddress)) {
-        return json(res, 400, { error: "Set PRIVATE_KEY or pass ?address=0x..." });
-      }
-      return json(res, 200, await getState(walletAddress));
-    }
-
-    if (url.pathname === "/api/submit" && req.method === "POST") {
-      const payload = JSON.parse(await readBody(req));
-      if (!/^0x[0-9a-fA-F]{64}$/.test(payload.nonce || "")) {
-        return json(res, 400, { error: "nonce must be 0x + 32 bytes" });
-      }
-      return json(res, 200, await submitNonce(payload.nonce));
-    }
-
-    if (url.pathname === "/api/ping") {
-      return json(res, 200, {
-        ok: true,
-        signer: process.env.PRIVATE_KEY ? new ethers.Wallet(process.env.PRIVATE_KEY).address : null,
-        readRpc: READ_RPC,
-        txRpc: TX_RPC,
-        broadcastRpcs: BROADCAST_RPCS,
-        tipGwei: TIP_GWEI
-      });
-    }
-
-    const file = url.pathname === "/"
-      ? path.join(publicDir, "miner.html")
-      : path.normalize(path.join(url.pathname === "/mine-page-js.txt" ? root : publicDir, url.pathname));
-    const safeBase = url.pathname === "/mine-page-js.txt" ? root : publicDir;
-    if (!file.startsWith(safeBase) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
-      res.writeHead(404);
-      res.end("not found");
-      return;
-    }
-    res.writeHead(200, { "content-type": contentType(file), "cache-control": "no-store" });
-    fs.createReadStream(file).pipe(res);
-  } catch (error) {
-    json(res, 500, { error: error instanceof Error ? error.message : String(error) });
-  }
-  });
-}
-
-export function startServer(port = PORT) {
-  const server = createServer();
-  server.listen(port, "127.0.0.1", () => {
-    console.log(`hash256 gpu miner: http://127.0.0.1:${port}`);
-    console.log(`contract: ${CONTRACT}`);
-    console.log(`tx rpc: ${TX_RPC}`);
-    console.log(`broadcast: ${BROADCAST_RPCS.join(", ")}`);
-    console.log(`tip: ${TIP_GWEI} gwei`);
-  });
-  return server;
-}
-
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  startServer(PORT);
 }

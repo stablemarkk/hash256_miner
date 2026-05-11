@@ -5,8 +5,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node src/server.js",
-    "cli": "node src/cli.js",
+    "start": "npm run native:cuda",
+    "cli": "npm run native:cuda",
     "native": "node src/native-cli.js",
     "native:cuda": "set MINER_BACKEND=cuda&& node src/native-cli.js",
     "native:opencl": "set MINER_BACKEND=opencl&& node src/native-cli.js",
@@ -14,7 +14,6 @@
     "cuda:bench": "native\\bin\\hash256-cuda.exe --bench 10 6144 384 96"
   },
   "dependencies": {
-    "ethers": "^6.13.5",
-    "playwright-core": "^1.53.0"
+    "ethers": "^6.13.5"
   }
 }
