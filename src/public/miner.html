@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>HASH256 GPU miner</title>
+    <style>
+      body { background:#050505; color:#00ff41; font:14px/1.45 ui-monospace,Consolas,monospace; margin:24px; }
+      button,input { background:#000; color:#00ff41; border:1px solid #00ff41; padding:8px 10px; font:inherit; }
+      pre { white-space:pre-wrap; border:1px solid #164; padding:12px; min-height:260px; }
+      .warn { color:#ffd166; }
+    </style>
+  </head>
+  <body>
+    <h1>HASH256 GPU miner</h1>
+    <p class="warn">PRIVATE_KEY stays in local Node relay. Browser only runs WebGPU and posts found nonce to localhost.</p>
+    <button id="start">start</button>
+    <button id="stop">stop</button>
+    <pre id="log"></pre>
+    <script type="module" src="/miner.js"></script>
+  </body>
+</html>

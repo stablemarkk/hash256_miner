@@ -1,0 +1,40 @@
+# Secrets and local config
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Runtime logs and benchmark output
+*.log
+*.err.log
+bench-*.json
+miner-*.log
+miner-*.err.log
+
+# CUDA/OpenCL build artifacts and local experiments
+native/bin/*.audit.exe
+native/bin/*.baseline.exe
+native/bin/*.hpt96.exe
+native/bin/*.new.exe
+native/bin/*-sm89-r*.exe
+native/bin/*.sass
+native/bin/*.cubin
+native/bin/*.obj
+native/bin/*.exp
+native/bin/*.lib
+
+# Keep release/runtime executables that the beginner setup uses.
+!native/bin/hash256-cuda.exe
+!native/bin/hash256-cuda.cubin
+!native/bin/hash256-cuda-driver.exe
+!native/bin/hash256-cuda.sm75.cubin
+!native/bin/hash256-cuda.sm75.exe
+!native/bin/hash256-opencl.exe
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
